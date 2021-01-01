@@ -411,24 +411,25 @@ but ssh connection should be created intially
 the directory structe is automatic , if not terraform will create based on the path
 arguments are 
 source : source path
-content : 
+content : the string to be appended to the destination file 
+
  
  resource "aws_instance" "web" {
-  # ...
 
-  # Copies the myapp.conf file to /etc/myapp.conf
+
+   Copies the myapp.conf file to /etc/myapp.conf
   provisioner "file" {
     source      = "conf/myapp.conf"
     destination = "/etc/myapp.conf"
   }
 
-  # Copies the string in content into /tmp/file.log
+  Copies the string in content into /tmp/file.log
   provisioner "file" {
     content     = "ami used: ${self.ami}"
     destination = "/tmp/file.log"
   }
 
-  # Copies the configs.d folder to /etc/configs.d
+  Copies the configs.d folder to /etc/configs.d
   provisioner "file" {
     source      = "conf/configs.d"
     destination = "/etc"
@@ -460,24 +461,37 @@ execution of the terraform apply
 or we can use source ="randomfile.txt"
 then source file gets copied to the destination directory
 
+ 
+  Copies all files and folders in apps/app1 to D:/IIS/webapp1
+  provisioner "file" {
+    source      = "apps/app1/"
+    destination = "D:/IIS/webapp1"
+  }
+}
 
+#### remote- exec
+this provisioner helpts to run the scripts on the remote server 
+works as an add on for the scripts and files given in the file provisioner 
 
+contents :
+inline = list of sequential commands
+script : takes the script 
+scripts : takes the list of the scripts 
 
+#### example on the provisioner "remote-exec"
 
-         
-         
-     }
-     
-     
-     
-     
-     
- }
-  
-  
-  
-  
-  
+resource "aws_instance" "my_instance"{
+    provisioner "file"{
+this source is the file with script
+        source = "script.sh"
+        destination ="/tmp/script.sh"
+    }
+    provisioner "remote-exec"{
+        inline =[ "chmod +x /tmp/script.sh", "/tmp/scrip.sh args"
+        ]
+    }
+}
+
 
       
       
