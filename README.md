@@ -492,8 +492,22 @@ this source is the file with script
     }
 }
 
+summary :
+provisioner :
+the main use of provisioner is to execute operations in the current file 
+or in the remote backend
+provisioner "file" for file management in source and destination
+executes on the first time of the infra apply
+later for destroy 
+when = destroy
+provisioner remote exe:
+for executing commands on the given sorce and destination 
+inline,script and scripts
+=========end of chapter infrastructure provisioning and configuration management=========================
+## UNIT-3  MASTERING THE WORKFLOW
 
-      
+
+
       
       
       
