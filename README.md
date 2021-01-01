@@ -1,7 +1,5 @@
-# terraform preparation material for harshicorp cloud automation certification 
 
-Terraform :
-Terraform init ->initialize the direactory with terraform
+Terraform :Terraform init ->initialize the direactory with terraform
 Terraform refresh : to get the current architechture 
 Terraform show : a comprehensive overview of the resources used
 Terraform state list :-> gives detailed state of the each resouce used in the infrastructure
@@ -318,15 +316,169 @@ provider "registry.terraform.io/hashicorp/random" {
   ---------------end of the chapter terraform providers--------
   
   
+  ## purpose of terraform state
+  maps the infrastrucute to the real world
+  it also tracks meta data to gather info about dependencies
+  inoder to make sure when destroying the infra , it keeps the state file 
+  and metadata to perform operations smoothly without destroying the resources used by other infra
   
-  
-  
-  
-  
-  
-  
-  
+  #### for performence :
+  terraform stores and fetches the current state data for every plan command 
+  so that it can sync with real world attributes
  
+  for larger infra , it is recommended to you -refresh=false inorder to work around because some delay in syncing can cause effects
+ 
+ use remote state and remote locking to make sure that two users dont audit the same terraform file at same instance
+ 
+ we can use the terraform block for variaous reasons
+ 1. to define the version of the terraform
+ 2. to define the required providers
+ 3. to define the terraform backend
+ a simple example
+'''
+terraform {
+  required_providers {
+    aws = {
+      version = ">= 2.7.0"
+      source = "hashicorp/aws"
+    }
+  }
+}
+'''
+ we can also explicity pass the metada in this block using provider_meta
+to have a overview on the above topic please follow the exaple
+
+use case : create an machine image with packer and terraform
+
+#### packer: open source tool for create identical machine image platforms
+as a sungle source of confg
+machine image : os image or we can say like a single docker unit kind of
+1.in aws its ami for ec2
+2.vmdk/vmx for windows
+benfits of packer:
+packer is a kind of user data automation in ec2
+template based ami creation 
+this helps to reduce boot time when we are horizontally scaling the system
+
+step1 :
+create a basic packer image with all the softawares and configs to be done
+step 2 :
+write the shell script which does the following
+ run the packer to build the images
+ populate the ami image ids and store them to variable.tfrs
+ link the image ids from variable.tfrs
+ terraform init && terraform apply
+ 
+### terraform provisioners
+the above work shop comes under provisioning concepet
+when we need to integrate with other devops tools
+or to do operations like user data in aws ec2 we can go for provisioning
+local exec : we can give an linux command to exucute in the current script
+
+self : self is used to access other attributes in the current tf file
+
+only runs when  when first creation of the resource 
+or when we are destroying 
+
+example 1:
+            resource "aws_instance" "my_instance"{
+                location = "us-east-1"
+            }
+               provisioner "local-exec"{
+                   when = destroy
+                   command = "echo  instance destroyed at $self.location "
+               }
+
+  on_failure :continue like continein programming ignores the errors
+              fail : to raise an error
+lets see the second example 
+resouurce "aws_instance " "web"{
+    provisioner "local-exec"{
+        command = "echo the server operated ip is ${self.private_ip}"
+        on_failure=contine/fail
+        
+    }
+    
+}
+#### types of provisioners
+generic [provisoners given by terraform enterprise]
+vendor specific for chef,pupper,salt-masterless etc
+lets see the examples for generic provisoners
+#### file provisioners
+to transfer content from sorce to destionation
+directoray remote uploads is also possible 
+but ssh connection should be created intially
+the directory structe is automatic , if not terraform will create based on the path
+arguments are 
+source : source path
+content : 
+ 
+ resource "aws_instance" "web" {
+  # ...
+
+  # Copies the myapp.conf file to /etc/myapp.conf
+  provisioner "file" {
+    source      = "conf/myapp.conf"
+    destination = "/etc/myapp.conf"
+  }
+
+  # Copies the string in content into /tmp/file.log
+  provisioner "file" {
+    content     = "ami used: ${self.ami}"
+    destination = "/tmp/file.log"
+  }
+
+  # Copies the configs.d folder to /etc/configs.d
+  provisioner "file" {
+    source      = "conf/configs.d"
+    destination = "/etc"
+  }
+
+ #### provisioner overall example 
+ 
+ resource "aws_instance" "my instance"{
+     public_ip="some_ip"
+     region ="us-west1"
+we can use connection for ssh to the aws cli instance ,directly     
+     connection{
+         type ="ssh"
+         host=self.public_ip
+         user="ubuntu"
+as ssh has pem files as password, we use file() to read the pem input         
+         private_key= file('home/ubuntu/private_pemfile.pem')
+}
+end of connection
+lets output the log to remote file using terraform provisioner
+  provisioner "file"{
+      content = "swaroop_loggein sir"
+      destination = "/home/ununtu/loggenin_details.txt"
+      
+  }
+
+this script copies the content string to the destination on the first 
+execution of the terraform apply
+or we can use source ="randomfile.txt"
+then source file gets copied to the destination directory
+
+
+
+
+
+         
+         
+     }
+     
+     
+     
+     
+     
+ }
+  
+  
+  
+  
+  
+
       
       
       
